@@ -160,9 +160,6 @@ def gather_files(ctx):
             dep_c_objs.extend(mod.outs)
 
     for s in ctx.attr.srcs:
-      print(s)
-
-    for s in ctx.attr.srcs:
         if ReasonModuleInfo in s:
             mod = s[ReasonModuleInfo]
             sources.extend(mod.outs)
@@ -173,8 +170,6 @@ def gather_files(ctx):
             imports.extend(files)
         else:
             files = s.files.to_list()
-            print("deps {}".format(s))
-            print("deps {}".format(type(s)))
             sources.extend(files)
             #imports.extend([x for x in s.files.to_list()])
             #ksources.extend(["src"])
