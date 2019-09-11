@@ -112,8 +112,7 @@ bs_module = rule(
     attrs={
         "config":
         attr.label(
-            allow_files=[BS_CONFIG_EXT],
-            #allow_single_file=True,
+            allow_single_file=[BS_CONFIG_EXT],
             mandatory=True,
         ),
         "srcs":
