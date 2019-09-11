@@ -57,7 +57,7 @@ def build_import_paths(imports, stdlib_path):
     paths = [i.dirname for i in imports]
 
     import_paths = ["-I", stdlib_path]
-    for p in depset(paths):
+    for p in depset(paths).to_list():
         import_paths.extend(["-I", p])
 
     return import_paths
@@ -160,6 +160,9 @@ def gather_files(ctx):
             dep_c_objs.extend(mod.outs)
 
     for s in ctx.attr.srcs:
+      print(s)
+
+    for s in ctx.attr.srcs:
         if ReasonModuleInfo in s:
             mod = s[ReasonModuleInfo]
             sources.extend(mod.outs)
@@ -169,8 +172,13 @@ def gather_files(ctx):
             sources.extend(files)
             imports.extend(files)
         else:
-            sources.extend([s])
-            imports.extend([s.dirname])
+            files = s.files.to_list()
+            print("deps {}".format(s))
+            print("deps {}".format(type(s)))
+            sources.extend(files)
+            #imports.extend([x for x in s.files.to_list()])
+            #ksources.extend(["src"])
+            #imports.extend([s.dirname])
 
     return (
         depset(sources).to_list(),

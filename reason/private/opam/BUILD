@@ -19,10 +19,12 @@ genrule(
       mkdir -p $$abs_pkg_root;
 
       # initialize opam
-      OPAMROOT=$$abs_pkg_root $$opam init --comp 4.02.3+buckle-master;
+      #4.02.3+buckle-master;
+      comp=4.06.1
+      OPAMROOT=$$abs_pkg_root $$opam init --disable-sandboxing --comp $$comp
 
       # package the opam root
-      tar --transform "s=$$pkg_root/==g" \
+      gtar --transform "s=$$pkg_root/==g" \
           --create $$pkg_root \
           --dereference \
           > $(location :opam_root.tar);
@@ -43,11 +45,17 @@ genrule(
     cmd = """\
       #!/bin/bash
 
+      set -eux
+
+      echo "got $(@D)"
+
+      #4.02.3+buckle-master
+      comp=4.06.1
       tar --extract \
           --file $(location :opam_root.tar) \
           --directory $(@D);
 
-      ocaml_root=$$(pwd)/$(@D)/4.02.3+buckle-master
+      ocaml_root=$$(pwd)/$(@D)/$$comp
 
       cp -f $$ocaml_root/bin/ocamlc.opt   $(@D)/ocamlc.opt;
       cp -f $$ocaml_root/bin/ocamldep.opt $(@D)/ocamldep.opt;
@@ -55,10 +63,13 @@ genrule(
       cp -f $$ocaml_root/bin/ocamlrun $(@D)/ocamlrun;
 
       # pack ml stdlib preserving paths
-      tar --transform "s=$(@D)/4.02.3+buckle-master/==g" \
-          --create $(@D)/4.02.3+buckle-master/lib/* \
+      gtar --transform "s=$(@D)/$$comp/==g" \
+          --create $(@D)/$$comp/lib/* \
           --dereference \
           > $(location ocaml_stdlib.tar);
+
+      #echo "created $(location ocaml_stdlib.tar)"
+      #exit 1
 
       """,
 )

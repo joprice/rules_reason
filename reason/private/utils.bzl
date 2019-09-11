@@ -27,7 +27,7 @@ def new_download(pkg,
                  ext,
                  build_file=None,
                  build_file_content=None):
-    native.new_http_archive(
+    http_archive(
         name=pkg,
         sha256=sha256,
         strip_prefix=github_prefix(repo=repo, version=version),
@@ -48,7 +48,8 @@ def unpack_filegroup(name, tar, files, **kwargs):
 
           tar --extract \
               --file $$(pwd)/$(location {tar}) \
-              --directory $(@D);
+              --directory $$(pwd)/$(@D);
+          echo "extract to $$(pwd)/$(@D)"
 
           """.format(tar=tar),
         srcs=[tar],

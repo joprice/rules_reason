@@ -1,8 +1,17 @@
-package(default_visibility = ["//:__subpackages__"])
+#package(default_visibility = ["//:__subpackages__"])
+package(default_visibility = ["//visibility:public"])
 
 load("//reason/private:utils.bzl", "unpack_filegroup")
 
-ml_files = [
+ml_files2 = glob([
+    "lib/ocaml/**/*.cmi",
+    "lib/ocaml/**/*.cmt",
+    "lib/ocaml/**/*.cmx",
+    "lib/ocaml/**/*.ml",
+    "lib/ocaml/**/*.mli",
+])
+
+ml_files = [x for x in [
     "lib/ocaml/arg.cmi",
     "lib/ocaml/arg.cmt",
     "lib/ocaml/arg.cmti",
@@ -11,10 +20,10 @@ ml_files = [
     "lib/ocaml/arg.mli",
     "lib/ocaml/arg.p.cmt",
     "lib/ocaml/arg.p.cmx",
-    "lib/ocaml/arith_flags.cmx",
-    "lib/ocaml/arith_status.cmi",
-    "lib/ocaml/arith_status.cmx",
-    "lib/ocaml/arith_status.mli",
+    #"lib/ocaml/arith_flags.cmx",
+    #"lib/ocaml/arith_status.cmi",
+    #"lib/ocaml/arith_status.cmx",
+    #"lib/ocaml/arith_status.mli",
     "lib/ocaml/array.cmi",
     "lib/ocaml/array.cmt",
     "lib/ocaml/array.cmti",
@@ -31,9 +40,9 @@ ml_files = [
     "lib/ocaml/arrayLabels.mli",
     "lib/ocaml/arrayLabels.p.cmt",
     "lib/ocaml/arrayLabels.p.cmx",
-    "lib/ocaml/big_int.cmi",
-    "lib/ocaml/big_int.cmx",
-    "lib/ocaml/big_int.mli",
+    #"lib/ocaml/big_int.cmi",
+    #"lib/ocaml/big_int.cmx",
+    #"lib/ocaml/big_int.mli",
     "lib/ocaml/bigarray.a",
     "lib/ocaml/bigarray.cma",
     "lib/ocaml/bigarray.cmi",
@@ -215,7 +224,7 @@ ml_files = [
     "lib/ocaml/int64.mli",
     "lib/ocaml/int64.p.cmt",
     "lib/ocaml/int64.p.cmx",
-    "lib/ocaml/int_misc.cmx",
+    #"lib/ocaml/int_misc.cmx",
     "lib/ocaml/lazy.cmi",
     "lib/ocaml/lazy.cmt",
     "lib/ocaml/lazy.cmti",
@@ -242,7 +251,7 @@ ml_files = [
     "lib/ocaml/libcamlrun_pic.a",
     "lib/ocaml/libcamlrun_shared.so",
     "lib/ocaml/libcamlstr.a",
-    "lib/ocaml/libnums.a",
+    #"lib/ocaml/libnums.a",
     "lib/ocaml/libthreads.a",
     "lib/ocaml/libthreadsnat.a",
     "lib/ocaml/libunix.a",
@@ -287,9 +296,9 @@ ml_files = [
     "lib/ocaml/moreLabels.p.cmt",
     "lib/ocaml/moreLabels.p.cmx",
     "lib/ocaml/mutex.mli",
-    "lib/ocaml/nat.cmi",
-    "lib/ocaml/nat.cmx",
-    "lib/ocaml/nat.mli",
+    #"lib/ocaml/nat.cmi",
+    #"lib/ocaml/nat.cmx",
+    #"lib/ocaml/nat.mli",
     "lib/ocaml/nativeint.cmi",
     "lib/ocaml/nativeint.cmt",
     "lib/ocaml/nativeint.cmti",
@@ -298,13 +307,13 @@ ml_files = [
     "lib/ocaml/nativeint.mli",
     "lib/ocaml/nativeint.p.cmt",
     "lib/ocaml/nativeint.p.cmx",
-    "lib/ocaml/num.cmi",
-    "lib/ocaml/num.cmx",
-    "lib/ocaml/num.mli",
-    "lib/ocaml/nums.a",
-    "lib/ocaml/nums.cma",
-    "lib/ocaml/nums.cmxa",
-    "lib/ocaml/nums.cmxs",
+    #"lib/ocaml/num.cmi",
+    #"lib/ocaml/num.cmx",
+    #"lib/ocaml/num.mli",
+    #"lib/ocaml/nums.a",
+    #"lib/ocaml/nums.cma",
+    #"lib/ocaml/nums.cmxa",
+    #"lib/ocaml/nums.cmxs",
     "lib/ocaml/obj.cmi",
     "lib/ocaml/obj.cmt",
     "lib/ocaml/obj.cmti",
@@ -375,9 +384,9 @@ ml_files = [
     "lib/ocaml/random.mli",
     "lib/ocaml/random.p.cmt",
     "lib/ocaml/random.p.cmx",
-    "lib/ocaml/ratio.cmi",
-    "lib/ocaml/ratio.cmx",
-    "lib/ocaml/ratio.mli",
+    #"lib/ocaml/ratio.cmi",
+    #"lib/ocaml/ratio.cmx",
+    #"lib/ocaml/ratio.mli",
     "lib/ocaml/scanf.cmi",
     "lib/ocaml/scanf.cmt",
     "lib/ocaml/scanf.cmti",
@@ -503,6 +512,11 @@ ml_files = [
     "lib/ocaml/weak.mli",
     "lib/ocaml/weak.p.cmt",
     "lib/ocaml/weak.p.cmx",
+]
+  #if not x.endswith("cmt")
+  #and not x.endswith("cmi")
+  #and not x.endswith("cmti")
+  #and not (x.endswith("cmx") and not "pervasives" in x)
 ]
 
 unpack_filegroup(

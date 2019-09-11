@@ -40,7 +40,7 @@ genrule(
       popd;
 
       # output the compiled workspace
-      tar --transform "s=$$pkg_root/==g" \
+      gtar --transform "s=$$pkg_root/==g" \
           --create $$pkg_root \
           --dereference \
           > $(location :bs_platform.tar);
@@ -61,23 +61,23 @@ genrule(
       pkg_root=$$(dirname $(location :bs_platform.tar))
 
       # unpack bs-platform
-      tar --extract \
+      gtar --extract \
           --file $$(pwd)/$(location :bs_platform.tar) \
           --directory $(@D);
 
       # pack bucklescript binaries
-      tar --transform "s=$$pkg_root/lib/==g" \
+      gtar --transform "s=$$pkg_root/lib/==g" \
           --create $$pkg_root/lib/*.exe \
           > $(location :bucklescript.bins.tar);
 
       # pack ml stdlib preserving paths
-      tar --transform "s=$$pkg_root/==g" \
+      gtar --transform "s=$$pkg_root/==g" \
           --create $$pkg_root/lib/ocaml/* \
           --dereference \
           > $(location stdlib.ml.tar);
 
       # pack js stdlib preserving paths
-      tar --transform "s=$$pkg_root/==g" \
+      gtar --transform "s=$$pkg_root/==g" \
           --create $$pkg_root/lib/js/* \
           --dereference \
           > $(location stdlib.js.tar);
