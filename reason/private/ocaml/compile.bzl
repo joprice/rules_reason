@@ -49,6 +49,9 @@ def ocaml_compile_library(
         command="""\
         #!/bin/bash
 
+        # need to fail early, otherwise duplicate type errors will be shown
+        set -eu
+
         # Compile .cmi and .cmo files
         {_ocamlc} {arguments} $(cat {ml_sources})
 
