@@ -48,7 +48,7 @@ def unpack_filegroup(name, tar, files, **kwargs):
 
           tar --extract \
               --file $$(pwd)/$(location {tar}) \
-              --directory $$(pwd)/$(@D);
+              --directory $(@D);
 
           """.format(tar=tar),
         srcs=[tar],
