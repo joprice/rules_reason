@@ -9,8 +9,6 @@ genrule(
     cmd = """\
       #!/bin/bash
 
-      set -eux
-
       # compute this package's root directory
       pkg_root=$$(dirname $(location :opam_root.tar))
       abs_pkg_root=$$(pwd)/$$pkg_root
@@ -21,9 +19,8 @@ genrule(
       mkdir -p $$abs_pkg_root;
 
       # initialize opam
-      #4.02.3+buckle-master;
-      comp=4.07.1
       comp=ocaml-base-compiler.4.08.1
+      # disabling sandbox since bazel uses its own
       OPAMROOT=$$abs_pkg_root $$opam init -n --disable-sandboxing --comp $$comp
 
       # package the opam root
@@ -48,12 +45,6 @@ genrule(
     cmd = """\
       #!/bin/bash
 
-      set -eux
-
-      echo "got $$(pwd)/$(@D)"
-
-      #4.02.3+buckle-master
-      #comp=4.07.1
       comp=ocaml-base-compiler.4.08.1
       tar --extract \
           --file $(location :opam_root.tar) \
@@ -71,9 +62,6 @@ genrule(
           --create $(@D)/$$comp/lib/* \
           --dereference \
           > $(location ocaml_stdlib.tar);
-
-      #echo "created $(location ocaml_stdlib.tar)"
-      #exit 1
 
       """,
 )

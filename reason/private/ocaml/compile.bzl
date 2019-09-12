@@ -163,15 +163,11 @@ def ocaml_compile_binary(
         command="""\
         #!/bin/bash
 
-        set -eu
-
         # Run ocamldep on all of the ml and mli dependencies for this binary
         {_ocamldep} \
             -sort \
             $(echo {dep_libs} | tr " " "\n" | grep ".ml*") \
             > .depend.all
-
-        cat .depend.all
 
         # Extract only the compiled cmx files to use as input for the compiler
         cat .depend.all \
@@ -180,9 +176,6 @@ def ocaml_compile_binary(
             | sed "s/\.ml.*$/{expected_object_ext}/g" \
             | xargs \
             > .depend.cmx
-
-        cat .depend.cmx
-        echo {base_libs}
 
         {_compiler} {arguments} \
             {c_objs} \
