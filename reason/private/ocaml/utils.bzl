@@ -171,8 +171,7 @@ def gather_files(ctx):
         else:
             files = s.files.to_list()
             sources.extend(files)
-            #imports.extend([x for x in s.files.to_list()])
-            #ksources.extend(["src"])
+            #TODO(joprice): this no longer works, and things build without it
             #imports.extend([s.dirname])
 
     return (
