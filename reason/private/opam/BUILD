@@ -9,6 +9,8 @@ genrule(
     cmd = """\
       #!/bin/bash
 
+      set -eux
+
       # compute this package's root directory
       pkg_root=$$(dirname $(location :opam_root.tar))
       abs_pkg_root=$$(pwd)/$$pkg_root
@@ -20,8 +22,9 @@ genrule(
 
       # initialize opam
       #4.02.3+buckle-master;
-      comp=4.06.1
-      OPAMROOT=$$abs_pkg_root $$opam init --disable-sandboxing --comp $$comp
+      comp=4.07.1
+      comp=ocaml-base-compiler.4.08.1
+      OPAMROOT=$$abs_pkg_root $$opam init -n --disable-sandboxing --comp $$comp
 
       # package the opam root
       gtar --transform "s=$$pkg_root/==g" \
@@ -47,10 +50,11 @@ genrule(
 
       set -eux
 
-      echo "got $(@D)"
+      echo "got $$(pwd)/$(@D)"
 
       #4.02.3+buckle-master
-      comp=4.06.1
+      #comp=4.07.1
+      comp=ocaml-base-compiler.4.08.1
       tar --extract \
           --file $(location :opam_root.tar) \
           --directory $(@D);

@@ -46,10 +46,12 @@ def unpack_filegroup(name, tar, files, **kwargs):
         cmd="""\
           #!/bin/bash
 
+          set -eu
+
           tar --extract \
               --file $$(pwd)/$(location {tar}) \
               --directory $$(pwd)/$(@D);
-          echo "extract to $$(pwd)/$(@D)"
+          echo "extract $$(pwd)/$(location {tar}) to $$(pwd)/$(@D)"
 
           """.format(tar=tar),
         srcs=[tar],
