@@ -76,7 +76,8 @@ def _ocaml_binary_impl(ctx):
     _ocaml_compile_binary(
         ctx=ctx,
         arguments=arguments,
-        base_libs=base_libs + stdlib_deps.to_list(),
+        #TODO(joprice) not confident this is the right way to join depsets
+        base_libs=depset(stdlib_deps.to_list() + base_libs.to_list()),
         binfile=binfile,
         c_deps=c_deps,
         c_sources=c_sources,

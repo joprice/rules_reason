@@ -148,7 +148,7 @@ def ocaml_compile_binary(
 
     # Extract all .cmxa baselib dependencies to include in linking
     stdlib_libs = []
-    for baselib in base_libs:
+    for baselib in base_libs.to_list():
         if CMXA_EXT in baselib.basename:
             stdlib_libs += [baselib]
 
