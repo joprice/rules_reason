@@ -3,7 +3,6 @@ def _opam_init(ctx):
 
     ctx.action.run_shell(
         command="""\
-          #!/bin/bash
         # compute this package's root directory
         pkg_root=$$(dirname $(location :opam_root.tar))
         abs_pkg_root=$$(pwd)/$$pkg_root

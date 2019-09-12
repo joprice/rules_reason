@@ -44,8 +44,6 @@ def unpack_filegroup(name, tar, files, **kwargs):
     native.genrule(
         name="unpack_" + name,
         cmd="""\
-          #!/bin/bash
-
           tar --extract \
               --file $$(pwd)/$(location {tar}) \
               --directory $(@D);

@@ -47,8 +47,6 @@ def ocaml_compile_library(
             toolchain.ocamlopt,
         ],
         command="""\
-        #!/bin/bash
-
         # need to fail early, otherwise duplicate type errors will be shown
         set -eu
 
@@ -66,12 +64,12 @@ def ocaml_compile_library(
             -exec cp {{}} {output_dir}/ \;
 
         find {source_dir} \
-            -name "*.cm*" \
+            \( -name "*.cm*" -or -name "*.o" \) \
             -exec cp {{}} {output_dir}/ \;
 
-        find {source_dir} \
-            -name "*.o" \
-            -exec cp {{}} {output_dir}/ \;
+        #find {source_dir} \
+        #    -name "*.o" \
+        #    -exec cp {{}} {output_dir}/ \;
 
         cp -f $(cat {ml_sources}) {output_dir}/;
 
@@ -164,8 +162,6 @@ def ocaml_compile_binary(
             toolchain.ocamldep,
         ],
         command="""\
-        #!/bin/bash
-
         # Run ocamldep on all of the ml and mli dependencies for this binary
         {_ocamldep} \
             -sort \

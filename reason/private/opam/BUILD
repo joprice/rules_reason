@@ -7,8 +7,6 @@ genrule(
     srcs = ["@opam"],
     outs = ["opam_root.tar"],
     cmd = """\
-      #!/bin/bash
-
       # compute this package's root directory
       pkg_root=$$(dirname $(location :opam_root.tar))
       abs_pkg_root=$$(pwd)/$$pkg_root
@@ -28,7 +26,6 @@ genrule(
           --create $$pkg_root \
           --dereference \
           > $(location :opam_root.tar);
-
       """,
 )
 
@@ -43,8 +40,6 @@ genrule(
         "ocamlrun",
     ],
     cmd = """\
-      #!/bin/bash
-
       comp=ocaml-base-compiler.4.08.1
       tar --extract \
           --file $(location :opam_root.tar) \

@@ -14,8 +14,6 @@ genrule(
     srcs = ["@bs//:srcs"],
     outs = ["bs_platform.tar"],
     cmd = """\
-      #!/bin/bash
-
       # compute this package's root directory
       pkg_root=$$(dirname $(location :bs_platform.tar))
 
@@ -96,8 +94,6 @@ genrule(
         "refmt.exe",
     ],
     cmd = """\
-      #!/bin/bash
-
       tar --extract \
           --file $(location :bucklescript.bins.tar) \
           --directory $(@D);

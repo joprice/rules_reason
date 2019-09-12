@@ -6,8 +6,6 @@ def ocamldep(ctx, name, sources, toolchain):
         tools=[toolchain.ocamldep],
         outputs=[sorted_sources],
         command="""\
-          #!/bin/bash
-
           {ocamldep} -sort {sources} > {out}
 
           """.format(

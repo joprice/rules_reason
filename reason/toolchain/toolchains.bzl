@@ -32,7 +32,6 @@ genrule(
   visibility = ["//visibility:public"],
   name = "unpack_binaries",
   cmd = \"\"\"\
-  #!/bin/bash
 
   # Copy binaries to the output location
   cp external/opam/bin/opam $$(dirname $(location :opam))/;
@@ -69,8 +68,6 @@ genrule(
   visibility = ["//visibility:public"],
   name = "unpack_binaries",
   cmd = \"\"\"\
-  #!/bin/bash
-
   # Copy binaries to the output location
   cp external/{bin_path} $(location :{bin_name});
 

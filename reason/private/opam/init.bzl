@@ -60,8 +60,6 @@ def init_opam(ocaml_version="4.02.3+buckle-master"):
         srcs=["@opam"],
         outs=["opam_root.tar"],
         cmd="""\
-        #!/bin/bash
-
         # compute this package's root directory
         pkg_root=$$(dirname $(location :opam_root.tar))
         abs_pkg_root=$$(pwd)/$$pkg_root
@@ -94,8 +92,6 @@ def init_opam(ocaml_version="4.02.3+buckle-master"):
             "ocamlrun",
         ],
         cmd="""\
-        #!/bin/bash
-
         tar --extract \
             --file $(location :opam_root.tar) \
             --directory $(@D);
