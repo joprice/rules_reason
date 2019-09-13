@@ -56,6 +56,7 @@ def _ocaml_module_impl(ctx):
     (ml_outputs, c_outputs) = _declare_outputs(ctx, sources)
     outputs = ml_outputs + c_outputs
 
+
     # Build runfiles
     runfiles = []
     runfiles.extend([sorted_sources])

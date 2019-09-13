@@ -8,7 +8,7 @@ def _opam_package(repo_ctx):
     prefix = "{name}-{version}".format(name=pkg_name, version=pkg_version)
 
     build_file_path = "BUILD"
-    build_file_template = repo_ctx.attr._build_template
+    build_file_template = repo_ctx.attr.build_template
 
     # Create BUILD file
     repo_ctx.template(
@@ -47,8 +47,7 @@ opam_package = repository_rule(
             mandatory=True,
             values=["zip", "jar", "war", "tar.gz", "tgz", "tar.bz2", "tar.xz"],
         ),
-        "_build_template":
-        attr.label(
+        "build_template": attr.label(
             allow_single_file=True,
             default="//reason/private/opam:opam_package.tpl",
         )

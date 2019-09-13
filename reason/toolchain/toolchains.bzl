@@ -22,6 +22,28 @@ load(
     "nixpkgs_package",
 )
 
+OCAML_BUILD_FILE = """
+filegroup(
+    visibility = ["//visibility:public"],
+    name = "srcs",
+    srcs = glob([ "**/*" ]),
+    )
+
+#genrule(
+#  visibility = ["//visibility:public"],
+#  name = "unpack_binaries",
+#  cmd = \"\"\"\
+#  set -eu
+#  #tree external/ocaml
+#  pwd
+#  cp -r external/ocaml/ $$(dirname $(location :ocaml))/;
+#
+#  \"\"\",
+#  srcs = [ ":srcs" ],
+#  outs = [ "ocaml" ],
+#  )
+"""
+
 OPAM_BUILD_FILE = """
 filegroup(
     name = "srcs",
@@ -79,20 +101,13 @@ genrule(
 
 
 def _declare_toolchain_repositories(
-        nixpkgs_revision,
-        nixpkgs_sha256,
+        nix_repository,
         bs_version,
         bs_sha256,
 ):
     """
     Make ReasonML/BuckleScript available in the WORKSPACE file.
     """
-
-    nixpkgs_git_repository(
-        name="reason-nixpkgs",
-        revision=nixpkgs_revision,
-        sha256=nixpkgs_sha256,
-    )
 
     nixpkgs_package(
         name="yarn",
@@ -101,7 +116,7 @@ def _declare_toolchain_repositories(
             bin_path="yarn/bin/yarn",
             bin_name="yarn",
         ),
-        repository="@reason-nixpkgs",
+        repository=nix_repository
     )
 
     nixpkgs_package(
@@ -112,15 +127,22 @@ def _declare_toolchain_repositories(
             bin_path="node/bin/node",
             bin_name="node",
         ),
-        repository="@reason-nixpkgs",
+        repository=nix_repository
     )
 
     nixpkgs_package(
-        name="opam",
-        attribute_path="opam",
-        build_file_content=OPAM_BUILD_FILE,
-        repository="@reason-nixpkgs",
+        name="ocaml",
+        attribute_path="ocaml-ng.ocamlPackages_4_08.ocaml",
+        build_file_content=OCAML_BUILD_FILE,
+        repository=nix_repository,
     )
+
+    #nixpkgs_package(
+    #    name="opam",
+    #    attribute_path="opam",
+    #    build_file_content=OPAM_BUILD_FILE,
+    #    repository=nix_repository
+    #)
 
     new_download(
         pkg="bs",
@@ -132,8 +154,7 @@ def _declare_toolchain_repositories(
         build_file_content=BS_BUILD_FILE)
 
 
-def reason_register_toolchains(nixpkgs_revision, nixpkgs_sha256, bs_version,
-                               bs_sha256):
+def reason_register_toolchains(nix_repository, bs_version, bs_sha256):
     """
     Declares a ReasonML/BuckleScript toolchain to use, downloads dependencies and
     initializes other repositories (such as `@nixpkgs`, `@reason`, and `@bs`).
@@ -145,8 +166,7 @@ def reason_register_toolchains(nixpkgs_revision, nixpkgs_sha256, bs_version,
       bs_version: a commit sha256 for the specific version of BuckleScript code
       bs_sha256: the integrity checksum to verify the BuckleScript source
     """
-    _declare_toolchain_repositories(nixpkgs_revision, nixpkgs_sha256,
-                                    bs_version, bs_sha256)
+    _declare_toolchain_repositories(nix_repository, bs_version, bs_sha256)
 
 
 def declare_default_toolchain():
