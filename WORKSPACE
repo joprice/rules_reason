@@ -38,8 +38,8 @@ load(
 )
 
 nix_repositories(
-    nix_sha256 = "c4ca88951f59e443b430f1532ae2a875c45643206590f7fa90c905a952b764bc",
-    nix_version = "b83e0d09ab0819480ce3ec8d57d2673d6270c3c3",
+    nix_sha256 = "55492b1be22227a704b93a68e2973a33936b1bee4d50399779981ee7e167758e",
+    nix_version = "c6dee7baaf5d310f6b0f31b1aa05adf94b428cc2",
 )
 
 
@@ -51,7 +51,7 @@ load(
 #
 nixpkgs_git_repository(
     name="reason-nixpkgs",
-    revision="5a12a5bd5735b52e98f583d35ecb690902fa7c09",
+    revision="1e8fa431222b732c509f110c7baf559e97178dd6",
     #sha256=nixpkgs_sha256,
 )
 
