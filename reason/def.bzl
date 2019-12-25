@@ -1,8 +1,9 @@
 # Repository rules
 load(
     "@com_github_ostera_rules_reason//reason/toolchain:toolchains.bzl",
-    "reason_register_toolchains",
+    _reason_register_toolchains="reason_register_toolchains",
 )
+
 
 # Dependency rules
 load("@com_github_ostera_rules_reason//reason/private/opam:opam_package.bzl",
@@ -36,3 +37,4 @@ bs_module = _bs_module
 ocaml_module = _ocaml_module
 ocaml_native_binary = _ocaml_native_binary
 ocaml_bytecode_binary = _ocaml_bytecode_binary
+reason_register_toolchains=_reason_register_toolchains

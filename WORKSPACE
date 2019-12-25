@@ -18,6 +18,9 @@ bazel_repositories(
     buildtools_sha256 = "edf39af5fc257521e4af4c40829fffe8fba6d0ebff9f4dd69a6f8f1223ae047b",
     )
 
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+bazel_skylib_workspace()
+
 load(
     "@com_github_ostera_rules_reason//reason/repositories:tools.bzl",
     "setup_repo_tools",
@@ -39,6 +42,19 @@ nix_repositories(
     nix_version = "b83e0d09ab0819480ce3ec8d57d2673d6270c3c3",
 )
 
+
+load(
+    "@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl",
+    "nixpkgs_git_repository",
+    "nixpkgs_package",
+)
+#
+nixpkgs_git_repository(
+    name="reason-nixpkgs",
+    revision="5a12a5bd5735b52e98f583d35ecb690902fa7c09",
+    #sha256=nixpkgs_sha256,
+)
+
 ###
 ### Register Reason Toolchain
 ###
@@ -49,10 +65,9 @@ load(
 )
 
 reason_register_toolchains(
+    nix_repository="@reason-nixpkgs",
     bs_sha256 = "45d8a93a68976d01b62e373b9fda2d8b839bd6610e3d9820e146cab9882b4561",
     bs_version = "3904b20a4036370b40617019f716f6fef02ae0b6",
-    nixpkgs_revision = "5a12a5bd5735b52e98f583d35ecb690902fa7c09",
-    nixpkgs_sha256 = "363747f9acb14fc8a6c0dcaef29da6f87693a59a5ff0adcbe7cd811d20503eb5",
 )
 
 ###
