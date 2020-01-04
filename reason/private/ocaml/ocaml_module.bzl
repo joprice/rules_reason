@@ -67,7 +67,7 @@ def _ocaml_module_impl(ctx):
     # Compute import paths
     import_paths = _build_import_paths(imports, stdlib_path)
 
-    arguments = ["-color", "always"] + import_paths + ["-c"]
+    arguments = ["-w", "-3", "-color", "always"] + import_paths + ["-c"]
 
     _ocaml_compile_library(
         ctx=ctx,

@@ -23,6 +23,7 @@ load(
     "select_compiler",
 )
 
+load("@bazel_skylib//lib:sets.bzl", "sets")
 
 def ocaml_compile_library(
         ctx,
@@ -39,6 +40,10 @@ def ocaml_compile_library(
     .cmx counterparts.
   """
 
+    source_dirs = sets.make()
+    for source in ml_sources:
+      sets.insert(source_dirs, source.dirname)
+
     ctx.actions.run_shell(
         inputs=runfiles,
         outputs=outputs,
@@ -48,6 +53,7 @@ def ocaml_compile_library(
         ],
         command="""\
         # need to fail early, otherwise duplicate type errors will be shown
+        #!/bin/bash
         set -eu
 
         # Compile .cmi and .cmo files
@@ -80,7 +86,7 @@ def ocaml_compile_library(
             c_sources=" ".join([c.path for c in c_sources]),
             ml_sources=sorted_sources.path,
             output_dir=outputs[0].dirname,
-            source_dir=ml_sources[0].dirname,
+            source_dir=" ".join(sets.to_list(source_dirs))
         ),
         mnemonic="OCamlCompileLib",
         progress_message="Compiling ({_in}) to ({out})".format(
@@ -153,6 +159,10 @@ def ocaml_compile_binary(
         if CMXA_EXT in baselib.basename:
             stdlib_libs += [baselib]
 
+    source_dirs = sets.make()
+    for source in ml_sources:
+      sets.insert(source_dirs, source.dirname)
+
     ctx.actions.run_shell(
         inputs=runfiles,
         outputs=[binfile],
@@ -197,7 +207,7 @@ def ocaml_compile_binary(
             ml_sources=sorted_sources.path,
             output_dir=binfile.dirname,
             pattern=binfile.basename,
-            source_dir=ml_sources[0].dirname,
+            source_dir=" ".join(sets.to_list(source_dirs))
         ),
         mnemonic="OCamlCompileBin",
         progress_message="Compiling ({_in}) to ({out})".format(
