@@ -2,9 +2,11 @@ load(
     "//reason/private:extensions.bzl",
     "CM_EXTS",
     "CMA_EXT",
+    "CMX_EXT",
     "CMXA_EXT",
     "MLI_EXT",
     "ML_EXT",
+    "CMO_EXT",
 )
 
 load(
@@ -52,14 +54,38 @@ def _ocaml_module_impl(ctx):
     # Run ocamldep on the ML sources to compile in right order
     sorted_sources = _ocamldep(ctx, name, ml_sources, toolchain)
 
+    sorted_cmo = None
+    sorted_cmx = None
+    if ctx.attr.pack:
+      cmo = [file for file in deps if file.basename.endswith(CMO_EXT)] if ctx.attr.pack else []
+      if len(cmo) > 0:
+        sorted_cmo = _ocamldep(ctx, name + "_cmo", cmo, toolchain)
+
+      cmx = [file for file in deps if file.basename.endswith(ML_EXT)] if ctx.attr.pack else []
+      if len(cmx) > 0:
+        sorted_cmx = _ocamldep(ctx, name + "_cmx", cmx, toolchain, native=True)
+    #cmi = [file.path for file in deps if file.basename.endswith(CMI_EXT)] if ctx.attr.pack else []
+    #cmx = [file.path for file in deps if file.basename.endswith(CMX_EXT)] if ctx.attr.pack else []
+
+    if name == "ocamlgraph":
+      print("cmo", cmo)
+      print("cmx", cmx)
+      #print(sources)
+      #print("deps {}".format(deps))
+      #print("imports {}".format(imports))
+
     # Declare outputs
     (ml_outputs, c_outputs, ocamlc_flags, ocamlopt_flags) = _declare_outputs(ctx, sources)
-    outputs = ml_outputs + c_outputs
 
+    outputs = ml_outputs + c_outputs
 
     # Build runfiles
     runfiles = []
     runfiles.extend([sorted_sources])
+    if sorted_cmo != None:
+      runfiles.append(sorted_cmo)
+    if sorted_cmx != None:
+      runfiles.append(sorted_cmx)
     runfiles.extend(sources)
     runfiles.extend(deps)
     runfiles.extend(stdlib)
@@ -80,9 +106,12 @@ def _ocaml_module_impl(ctx):
         outputs=outputs,
         runfiles=runfiles,
         sorted_sources=sorted_sources,
+        sorted_cmo=sorted_cmo,
+        sorted_cmx=sorted_cmx,
         ml_sources=ml_sources,
         c_sources=c_sources,
         toolchain=toolchain,
+        deps=deps
     )
 
     return [

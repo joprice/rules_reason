@@ -132,7 +132,7 @@ def _declare_toolchain_repositories(
 
     nixpkgs_package(
         name="ocaml",
-        attribute_path="ocaml-ng.ocamlPackages_4_08.ocaml",
+        attribute_path="ocaml-ng.ocamlPackages_4_07.ocaml",
         build_file_content=OCAML_BUILD_FILE,
         repository=nix_repository,
     )

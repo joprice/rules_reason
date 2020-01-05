@@ -34,7 +34,10 @@ def ocaml_compile_library(
         outputs,
         runfiles,
         sorted_sources,
+        sorted_cmo,
+        sorted_cmx,
         toolchain,
+        deps,
 ):
     """
     Compile a given set of OCaml .ml and .mli sources to their .cmo, .cmi, and
@@ -56,6 +59,19 @@ def ocaml_compile_library(
         ml_sources=sorted_sources.path,
     )
 
+    cmo = []
+    #cmo = [file.path for file in deps if file.basename.endswith(CMO_EXT)] if ctx.attr.pack else []
+    packed_modules = []
+    cmi = []
+    if ctx.attr.pack:
+      for file in deps:
+        if file.basename.endswith(CMI_EXT):
+          no_ext = file.basename[len(file.extension):]
+          if no_ext in packed_modules:
+            cmi.append(file.path)
+    #cmx = [file.path for file in deps if file.basename.endswith(CMX_EXT)] if ctx.attr.pack else []
+    cmx = []
+
     ctx.actions.run_shell(
         inputs=runfiles,
         outputs=outputs,
@@ -71,10 +87,11 @@ def ocaml_compile_library(
         #echo `pwd`
 
         # Compile .cmi and .cmo files
-        {_ocamlc} {ocamlc_flags} $(cat {ml_sources})
+        {_ocamlc} {ocamlc_flags} $(cat {ml_sources}) $(cat {sorted_cmo}) {cmi}
 
         # Compile .cmx files
-        {_ocamlopt} {ocamlopt_flags} $(cat {ml_sources}) {c_sources}
+        {_ocamlopt} {ocamlopt_flags} $(cat {ml_sources}) {c_sources} {cmi} $(cat {sorted_cmx})
+
 
         mkdir -p {output_dir}
 
@@ -91,9 +108,14 @@ def ocaml_compile_library(
             ocamlopt_flags=" ".join(ocamlopt_flags),
             c_sources=" ".join([c.path for c in c_sources]),
             ml_sources=sorted_sources.path,
+            sorted_cmo=sorted_cmo.path if sorted_cmo != None else "",
+            sorted_cmx=sorted_cmx.path if sorted_cmx != None else "",
             output_dir=outputs[0].dirname,
             collect_sources=collect_sources,
-            #source_dir=" ".join(sets.to_list(source_dirs))
+            cmo=" ".join(cmo),
+            cmi=" ".join(cmi),
+            cmx=" ".join(cmx),
+            #source_dir=" ".join(sets.to_list(source_dirs)),
         ),
         mnemonic="OCamlCompileLib",
         progress_message="Compiling ({_in}) to ({out})".format(
