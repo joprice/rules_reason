@@ -27,7 +27,8 @@ load("@bazel_skylib//lib:sets.bzl", "sets")
 
 def ocaml_compile_library(
         ctx,
-        arguments,
+        ocamlc_flags,
+        ocamlopt_flags,
         c_sources,
         ml_sources,
         outputs,
@@ -44,6 +45,17 @@ def ocaml_compile_library(
     for source in ml_sources:
       sets.insert(source_dirs, source.dirname)
 
+    collect_sources = "" if ctx.attr.pack else """\
+      find {source_dir} \
+          \( -name "*.cm*" -or -name "*.o" \) \
+          -exec cp {{}} {output_dir}/ \;
+      cp -f $(cat {ml_sources}) {output_dir}/;
+    """.format(
+        output_dir=outputs[0].dirname,
+        source_dir=" ".join(sets.to_list(source_dirs)),
+        ml_sources=sorted_sources.path,
+    )
+
     ctx.actions.run_shell(
         inputs=runfiles,
         outputs=outputs,
@@ -54,13 +66,15 @@ def ocaml_compile_library(
         command="""\
         # need to fail early, otherwise duplicate type errors will be shown
         #!/bin/bash
-        set -eu
+        set -eux
+
+        #echo `pwd`
 
         # Compile .cmi and .cmo files
-        {_ocamlc} {arguments} $(cat {ml_sources})
+        {_ocamlc} {ocamlc_flags} $(cat {ml_sources})
 
         # Compile .cmx files
-        {_ocamlopt} {arguments} $(cat {ml_sources}) {c_sources}
+        {_ocamlopt} {ocamlopt_flags} $(cat {ml_sources}) {c_sources}
 
         mkdir -p {output_dir}
 
@@ -69,24 +83,17 @@ def ocaml_compile_library(
             -name "*.o" \
             -exec cp {{}} {output_dir}/ \;
 
-        find {source_dir} \
-            \( -name "*.cm*" -or -name "*.o" \) \
-            -exec cp {{}} {output_dir}/ \;
-
-        #find {source_dir} \
-        #    -name "*.o" \
-        #    -exec cp {{}} {output_dir}/ \;
-
-        cp -f $(cat {ml_sources}) {output_dir}/;
-
+        {collect_sources}
         """.format(
             _ocamlc=toolchain.ocamlc.path,
             _ocamlopt=toolchain.ocamlopt.path,
-            arguments=" ".join(arguments),
+            ocamlc_flags=" ".join(ocamlc_flags),
+            ocamlopt_flags=" ".join(ocamlopt_flags),
             c_sources=" ".join([c.path for c in c_sources]),
             ml_sources=sorted_sources.path,
             output_dir=outputs[0].dirname,
-            source_dir=" ".join(sets.to_list(source_dirs))
+            collect_sources=collect_sources,
+            #source_dir=" ".join(sets.to_list(source_dirs))
         ),
         mnemonic="OCamlCompileLib",
         progress_message="Compiling ({_in}) to ({out})".format(
@@ -172,6 +179,8 @@ def ocaml_compile_binary(
             toolchain.ocamldep,
         ],
         command="""\
+            #/usr/bin/env bash
+            set -eux
         # Run ocamldep on all of the ml and mli dependencies for this binary
         {_ocamldep} \
             -sort \

@@ -99,45 +99,65 @@ def declare_outputs(ctx, sources):
     ml_outputs = []
     c_outputs = []
 
-    for s in sources:
-        name = s.basename
+    ocamlc_flags = []
+    ocamlopt_flags = []
+    if ctx.attr.pack:
+      ml_outputs.extend([
+          ctx.actions.declare_file(ctx.attr.pack + O_EXT),
+          ctx.actions.declare_file(ctx.attr.pack + CMI_EXT),
+          ctx.actions.declare_file(ctx.attr.pack + CMO_EXT),
+          ctx.actions.declare_file(ctx.attr.pack + CMX_EXT),
+      ])
+      ocamlc_flags.extend([
+        "-o",
+        ctx.actions.declare_file(ctx.attr.pack + CMO_EXT).path,
+      ])
+      ocamlopt_flags.extend([
+        "-o",
+        ctx.actions.declare_file(ctx.attr.pack + CMX_EXT).path,
+      ])
+    else:
+      for s in sources:
+          name = s.basename
 
-        # declare compiled interface files
-        if MLI_EXT in name:
-            ml_outputs.extend([
-                ctx.actions.declare_file(name),
-                ctx.actions.declare_file(name.replace(MLI_EXT, CMI_EXT))
-            ])
+          # declare compiled interface files
+          if MLI_EXT in name:
+              ml_outputs.extend([
+                  ctx.actions.declare_file(name),
+                  ctx.actions.declare_file(name.replace(MLI_EXT, CMI_EXT))
+              ])
 
-        # declare compiled source files
-        if ML_EXT in name and not MLI_EXT in name:
-            ml_outputs.extend([
-                # Source
-                ctx.actions.declare_file(name),
+          # declare compiled source files
+          if ML_EXT in name and not MLI_EXT in name:
+              ml_outputs.extend([
+                  # Source
+                  ctx.actions.declare_file(name),
 
-                # Not obvious: a .ml file should be compiled to a .cmi as well
-                # in case that there isn't a .mli with it, because other .mli
-                # files will look for the .cmi file instead of the .cmo file
-                # this duplication is harmless
-                ctx.actions.declare_file(name.replace(ML_EXT, CMI_EXT)),
+                  # Not obvious: a .ml file should be compiled to a .cmi as well
+                  # in case that there isn't a .mli with it, because other .mli
+                  # files will look for the .cmi file instead of the .cmo file
+                  # this duplication is harmless
+                  ctx.actions.declare_file(name.replace(ML_EXT, CMI_EXT)),
 
-                # Bytecode outputs
-                ctx.actions.declare_file(name.replace(ML_EXT, CMO_EXT)),
+                  # Bytecode outputs
+                  ctx.actions.declare_file(name.replace(ML_EXT, CMO_EXT)),
 
-                # Binary outputs
-                ctx.actions.declare_file(name.replace(ML_EXT, CMX_EXT)),
-                ctx.actions.declare_file(name.replace(ML_EXT, O_EXT)),
-            ])
+                  # Binary outputs
+                  ctx.actions.declare_file(name.replace(ML_EXT, CMX_EXT)),
+                  ctx.actions.declare_file(name.replace(ML_EXT, O_EXT)),
+              ])
 
-        # declare c source artifacts
-        if C_EXT in name:
-            c_outputs.extend([
-                ctx.actions.declare_file(name.replace(C_EXT, O_EXT)),
-            ])
+          # declare c source artifacts
+          if C_EXT in name:
+              c_outputs.extend([
+                  ctx.actions.declare_file(name.replace(C_EXT, O_EXT)),
+              ])
 
     return (
         ml_outputs,
         c_outputs,
+        ocamlc_flags,
+        ocamlopt_flags,
     )
 
 

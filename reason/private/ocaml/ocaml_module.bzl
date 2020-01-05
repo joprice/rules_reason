@@ -53,7 +53,7 @@ def _ocaml_module_impl(ctx):
     sorted_sources = _ocamldep(ctx, name, ml_sources, toolchain)
 
     # Declare outputs
-    (ml_outputs, c_outputs) = _declare_outputs(ctx, sources)
+    (ml_outputs, c_outputs, ocamlc_flags, ocamlopt_flags) = _declare_outputs(ctx, sources)
     outputs = ml_outputs + c_outputs
 
 
@@ -67,11 +67,16 @@ def _ocaml_module_impl(ctx):
     # Compute import paths
     import_paths = _build_import_paths(imports, stdlib_path)
 
-    arguments = ["-w", "-3", "-color", "always"] + import_paths + ["-c"]
+    compile_flag = ["-pack"] if ctx.attr.pack else ["-c"]
+    common_flags = ["-color", "always"] + import_paths + compile_flag
+
+    ocamlc_flags.extend(ctx.attr.ocamlc_flags + common_flags)
+    ocamlopt_flags.extend(ctx.attr.ocamlopt_flags + common_flags)
 
     _ocaml_compile_library(
         ctx=ctx,
-        arguments=arguments,
+        ocamlc_flags=ocamlc_flags,
+        ocamlopt_flags=ocamlopt_flags,
         outputs=outputs,
         runfiles=runfiles,
         sorted_sources=sorted_sources,
@@ -102,24 +107,24 @@ def _ocaml_module_impl(ctx):
 
 ocaml_module = rule(
     attrs={
-        "srcs":
-        attr.label_list(
+        "srcs": attr.label_list(
             allow_files=[ML_EXT, MLI_EXT],
             mandatory=True,
         ),
-        "deps":
-        attr.label_list(
+        "deps": attr.label_list(
             allow_files=False,
             default=[],
         ),
-        "base_libs":
-        attr.string_list(default=[]),
-        "toolchain":
-        attr.label(
+        "base_libs": attr.string_list(default=[]),
+        "toolchain": attr.label(
             # TODO(@ostera): rename this target to managed-platform
             default="//reason/toolchain:bs-platform",
             providers=[platform_common.ToolchainInfo],
         ),
+        "ocamlc_flags": attr.string_list(default=[]),
+        "ocamlopt_flags": attr.string_list(default=[]),
+        "pack": attr.string(),
+        "includes": attr.string_list(default=[]),
     },
     implementation=_ocaml_module_impl,
 )

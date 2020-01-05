@@ -71,7 +71,7 @@ def _ocaml_binary_impl(ctx):
         special_flags = ["-custom"]
 
     arguments = ["-color", "always", "-bin-annot"] + \
-        special_flags + import_paths + ["-o", binfile.path]
+        special_flags + import_paths + ["-o", binfile.path] + ctx.attr.ocamlc_flags
 
     _ocaml_compile_binary(
         ctx=ctx,
@@ -126,6 +126,8 @@ _ocaml_binary = rule(
             default="//reason/toolchain:bs-platform",
             providers=[platform_common.ToolchainInfo],
         ),
+        "ocamlc_flags": attr.string_list(default=[]),
+        "ocamlopt_flags": attr.string_list(default=[]),
     },
     executable=True,
     implementation=_ocaml_binary_impl,
