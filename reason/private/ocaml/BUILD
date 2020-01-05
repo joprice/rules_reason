@@ -3840,7 +3840,7 @@ ml_files_4_08 = [
 unpack_filegroup(
     name = "stdlib.ml",
     # TODO: parameterize
-    files = ml_files_4_07,
-    #files = ml_files_4_08,
+    #files = ml_files_4_07,
+    files = ml_files_4_08,
     tar = "//reason/private/opam:ocaml_stdlib.tar",
 )

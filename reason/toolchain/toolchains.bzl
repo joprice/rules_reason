@@ -104,7 +104,7 @@ def _declare_toolchain_repositories(
         nix_repository,
         bs_version,
         bs_sha256,
-        ocaml_version = "4_07",
+        ocaml_version = "4_08",
 ):
     """
     Make ReasonML/BuckleScript available in the WORKSPACE file.
