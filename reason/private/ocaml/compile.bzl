@@ -48,15 +48,45 @@ def ocaml_compile_library(
     for source in ml_sources:
       sets.insert(source_dirs, source.dirname)
 
-    collect_sources = "" if ctx.attr.pack else """\
+    move_sources = """\
       find {source_dir} \
           \( -name "*.cm*" -or -name "*.o" \) \
           -exec cp {{}} {output_dir}/ \;
-      cp -f $(cat {ml_sources}) {output_dir}/;
     """.format(
+        source_dir=" ".join(sets.to_list(source_dirs)),
+        output_dir=outputs[0].dirname,
+    ) if not ctx.attr.wrapped else """\
+      for file in $(find {source_dir} \
+          \( -name "*.cm*" -or -name "*.o" \)); do
+          dir=$(dirname $file)
+          base=$(basename $file)
+          no_ext="${{base%.*}}"
+          updated=""
+          if [[ $no_ext != {name} ]]; then
+            updated="{name}__$(tr '[:lower:]' '[:upper:]' <<< ${{base:0:1}})${{base:1}}"
+          fi
+          echo $base
+          cp $file {output_dir}/$updated
+      done
+    """.format(
+        name=ctx.attr.name,
+        source_dir=" ".join(sets.to_list(source_dirs)),
+        output_dir=outputs[0].dirname,
+    )
+
+    collect_sources = "" if ctx.attr.pack else """\
+      {move_sources}
+      for line in $(cat {ml_sources}); do
+        if [[ "$line" != *{name}__.ml ]]; then
+          cp -f $line {output_dir}/
+        fi
+      done
+    """.format(
+        name=ctx.attr.name,
         output_dir=outputs[0].dirname,
         source_dir=" ".join(sets.to_list(source_dirs)),
         ml_sources=sorted_sources.path,
+        move_sources=move_sources,
     )
 
     cmo = []
@@ -176,9 +206,12 @@ def ocaml_compile_binary(
     if target == TARGET_BYTECODE:
         expected_object_ext = CMO_EXT
 
+    extra = []
     dep_libs = []
     for d in deps:
         name = d.basename
+        if name == "graph.cmx":
+          extra.append(d)
         if ML_EXT in name or MLI_EXT in name:
             dep_libs.extend([d])
 
@@ -220,7 +253,7 @@ def ocaml_compile_binary(
         {_compiler} {arguments} \
             {c_objs} \
             {base_libs} \
-            $(cat .depend.cmx) $(cat {ml_sources}) {c_sources}
+            {extra} $(cat .depend.cmx) $(cat {ml_sources}) {c_sources}
 
         mkdir -p {output_dir}
 
@@ -238,7 +271,8 @@ def ocaml_compile_binary(
             ml_sources=sorted_sources.path,
             output_dir=binfile.dirname,
             pattern=binfile.basename,
-            source_dir=" ".join(sets.to_list(source_dirs))
+            source_dir=" ".join(sets.to_list(source_dirs)),
+            extra =" ".join([f.path for f in extra]),
         ),
         mnemonic="OCamlCompileBin",
         progress_message="Compiling ({_in}) to ({out})".format(

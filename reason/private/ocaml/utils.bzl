@@ -85,6 +85,10 @@ def select_compiler(toolchain, target):
 
     fail("Could not select a compiler for target %s" % target)
 
+def add_prefix(ctx, name, ext, from_ext=ML_EXT):
+  return (
+      ctx.attr.name + "__" + name.capitalize() if ctx.attr.wrapped and ctx.attr.name + from_ext != name else name
+  ).replace(from_ext, ext)
 
 def declare_outputs(ctx, sources):
     """
@@ -117,6 +121,16 @@ def declare_outputs(ctx, sources):
         ctx.actions.declare_file(ctx.attr.pack + CMX_EXT).path,
       ])
     else:
+      #if len(sources) > 0:
+      if ctx.attr.wrapped:
+        ml_outputs.extend([
+            #ctx.actions.declare_file(ctx.attr.name + "__" + ML_EXT),
+            ctx.actions.declare_file(ctx.attr.name + "__" + CMI_EXT),
+            ctx.actions.declare_file(ctx.attr.name + "__" + CMO_EXT),
+            ctx.actions.declare_file(ctx.attr.name + "__" + CMX_EXT),
+            ctx.actions.declare_file(ctx.attr.name + "__" + O_EXT),
+        ])
+
       for s in sources:
           name = s.basename
 
@@ -124,7 +138,7 @@ def declare_outputs(ctx, sources):
           if MLI_EXT in name:
               ml_outputs.extend([
                   ctx.actions.declare_file(name),
-                  ctx.actions.declare_file(name.replace(MLI_EXT, CMI_EXT))
+                  ctx.actions.declare_file(add_prefix(ctx, name, CMI_EXT, from_ext=MLI_EXT))
               ])
 
           # declare compiled source files
@@ -137,14 +151,14 @@ def declare_outputs(ctx, sources):
                   # in case that there isn't a .mli with it, because other .mli
                   # files will look for the .cmi file instead of the .cmo file
                   # this duplication is harmless
-                  ctx.actions.declare_file(name.replace(ML_EXT, CMI_EXT)),
+                  ctx.actions.declare_file(add_prefix(ctx, name, CMI_EXT)),
 
                   # Bytecode outputs
-                  ctx.actions.declare_file(name.replace(ML_EXT, CMO_EXT)),
+                  ctx.actions.declare_file(add_prefix(ctx, name, CMO_EXT)),
 
                   # Binary outputs
-                  ctx.actions.declare_file(name.replace(ML_EXT, CMX_EXT)),
-                  ctx.actions.declare_file(name.replace(ML_EXT, O_EXT)),
+                  ctx.actions.declare_file(add_prefix(ctx, name, CMX_EXT)),
+                  ctx.actions.declare_file(add_prefix(ctx, name, O_EXT)),
               ])
 
           # declare c source artifacts

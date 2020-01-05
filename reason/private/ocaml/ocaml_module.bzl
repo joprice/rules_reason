@@ -35,6 +35,33 @@ load(
     _ocaml_compile_library="ocaml_compile_library",
 )
 
+def generate_wrapper(ctx, ml_sources, toolchain):
+    module = ctx.actions.declare_file(ctx.attr.name + "__" + ML_EXT)
+
+    ctx.actions.run_shell(
+        inputs=ml_sources,
+        tools=[toolchain.ocamldep],
+        outputs=[module],
+        command="""#/usr/bin/env bash
+          set -eux
+          for source in {sources}; do
+            base=$(basename $source)
+            no_ext="${{base%.*}}"
+            name={name}
+            upperName="$(tr '[:lower:]' '[:upper:]' <<< ${{name:0:1}})${{name:1}}"
+            module="$(tr '[:lower:]' '[:upper:]' <<< ${{no_ext:0:1}})${{no_ext:1}}"
+            echo "module $module = ${{upperName}}__$module\n" >> {out}
+          done
+        """.format(
+            name=ctx.attr.name,
+            sources=" ".join([s.path for s in ml_sources if s.path.endswith(ML_EXT)]),
+            out=module.path,
+        ),
+        mnemonic="OCamlDep",
+        progress_message="Generating wrapper ({_in})".format(
+            _in=", ".join([s.basename for s in ml_sources]),),
+    )
+    return module
 
 def _ocaml_module_impl(ctx):
     name = ctx.attr.name
@@ -50,6 +77,11 @@ def _ocaml_module_impl(ctx):
 
     # Split sources for sorting
     (ml_sources, c_sources) = _group_sources_by_language(sources)
+
+    module = None
+    if ctx.attr.wrapped:
+      module = generate_wrapper(ctx, ml_sources, toolchain)
+      ml_sources.append(module)
 
     # Run ocamldep on the ML sources to compile in right order
     sorted_sources = _ocamldep(ctx, name, ml_sources, toolchain)
@@ -67,17 +99,18 @@ def _ocaml_module_impl(ctx):
     #cmi = [file.path for file in deps if file.basename.endswith(CMI_EXT)] if ctx.attr.pack else []
     #cmx = [file.path for file in deps if file.basename.endswith(CMX_EXT)] if ctx.attr.pack else []
 
-    if name == "ocamlgraph":
-      print("cmo", cmo)
-      print("cmx", cmx)
-      #print(sources)
-      #print("deps {}".format(deps))
-      #print("imports {}".format(imports))
+    #if name == "ocamlgraph":
+    #print("cmo", cmo)
+    #print("cmx", cmx)
+    #print(sources)
+    #print("deps {}".format(deps))
+    #print("imports {}".format(imports))
 
     # Declare outputs
     (ml_outputs, c_outputs, ocamlc_flags, ocamlopt_flags) = _declare_outputs(ctx, sources)
 
     outputs = ml_outputs + c_outputs
+
 
     # Build runfiles
     runfiles = []
@@ -86,6 +119,8 @@ def _ocaml_module_impl(ctx):
       runfiles.append(sorted_cmo)
     if sorted_cmx != None:
       runfiles.append(sorted_cmx)
+    if module != None:
+      runfiles.append(module)
     runfiles.extend(sources)
     runfiles.extend(deps)
     runfiles.extend(stdlib)
@@ -94,7 +129,13 @@ def _ocaml_module_impl(ctx):
     import_paths = _build_import_paths(imports, stdlib_path)
 
     compile_flag = ["-pack"] if ctx.attr.pack else ["-c"]
-    common_flags = ["-color", "always"] + import_paths + compile_flag
+    common_flags = [
+        "-color",
+        "always",
+        "-no-alias-deps",
+        "-keep-locs",
+        "-short-paths",
+    ] + import_paths + compile_flag
 
     ocamlc_flags.extend(ctx.attr.ocamlc_flags + common_flags)
     ocamlopt_flags.extend(ctx.attr.ocamlopt_flags + common_flags)
@@ -114,6 +155,8 @@ def _ocaml_module_impl(ctx):
         deps=deps
     )
 
+    #print("this deps", deps)
+
     return [
         DefaultInfo(
             files=depset(outputs),
@@ -122,7 +165,7 @@ def _ocaml_module_impl(ctx):
         MlCompiledModule(
             name=ctx.attr.name,
             srcs=ml_sources,
-            deps=deps,
+            deps=[] if ctx.attr.pack else deps,
             base_libs=base_libs,
             outs=ml_outputs,
         ),
@@ -154,6 +197,7 @@ ocaml_module = rule(
         "ocamlopt_flags": attr.string_list(default=[]),
         "pack": attr.string(),
         "includes": attr.string_list(default=[]),
+        "wrapped": attr.bool(default=False),
     },
     implementation=_ocaml_module_impl,
 )

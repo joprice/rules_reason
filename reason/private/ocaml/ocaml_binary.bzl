@@ -70,7 +70,7 @@ def _ocaml_binary_impl(ctx):
     if ctx.attr.target == TARGET_BYTECODE:
         special_flags = ["-custom"]
 
-    arguments = ["-color", "always", "-bin-annot"] + \
+    arguments = ["-color", "always", "-bin-annot", "-no-alias-deps"] + \
         special_flags + import_paths + ["-o", binfile.path] + ctx.attr.ocamlc_flags
 
     _ocaml_compile_binary(

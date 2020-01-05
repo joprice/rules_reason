@@ -104,6 +104,7 @@ def _declare_toolchain_repositories(
         nix_repository,
         bs_version,
         bs_sha256,
+        ocaml_version = "4_07",
 ):
     """
     Make ReasonML/BuckleScript available in the WORKSPACE file.
@@ -132,7 +133,7 @@ def _declare_toolchain_repositories(
 
     nixpkgs_package(
         name="ocaml",
-        attribute_path="ocaml-ng.ocamlPackages_4_07.ocaml",
+        attribute_path="ocaml-ng.ocamlPackages_{}.ocaml".format(ocaml_version),
         build_file_content=OCAML_BUILD_FILE,
         repository=nix_repository,
     )
